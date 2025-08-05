@@ -30,9 +30,7 @@ A simple **Todo Service** built with **Golang**, **PostgreSQL**, and **AWS SQS (
 After cloning the repository, run the following commands inside the project directory to download and prepare all dependencies:
 
 ```bash
-go mod tidy
-
-go mod vendor
+make sync-vendor
 ```
 ### 1️⃣ Start the project
 

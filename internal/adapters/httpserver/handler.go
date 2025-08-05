@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// TodoHandler struct holds the service dependency
 type TodoHandler struct {
 	svc application.TodoService
 }

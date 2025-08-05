@@ -15,6 +15,10 @@ test:
 test-specific:
 	go test ./... -v -run $(name)
 
+sync-vendor:
+	go mod tidy
+	go mod vendor
+
 
 AWS_ENDPOINT=http://localhost:4566
 AWS_REGION=us-east-1
