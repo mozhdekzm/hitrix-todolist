@@ -25,15 +25,8 @@ A simple **Todo Service** built with **Golang**, **PostgreSQL**, and **AWS SQS (
 
 ## ⚡ Project Setup
 
-### 0️⃣ Prepare dependencies (Important)
-
-After cloning the repository, run the following commands inside the project directory to download and prepare all dependencies:
-
-```bash
-make sync-vendor
-```
-### 1️⃣ Start the project
-
+### 0️⃣ Start the project
+to build and run containers :
 ```bash
 make run
 ```
@@ -43,7 +36,13 @@ make run
 - Runs the Go service on `http://localhost:8080`
 
 ---
+### 1️⃣ Prepare dependencies (Important)
+run the following commands inside the project directory to download and prepare all dependencies:
 
+```bash
+make sync-vendor
+```
+---
 ### 2️⃣ Stop all containers
 
 ```bash
