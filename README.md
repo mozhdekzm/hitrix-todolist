@@ -8,7 +8,7 @@ A simple **Todo Service** built with **Golang**, **PostgreSQL**, and **AWS SQS (
 
 - Create and persist `TodoItem` in **PostgreSQL**
 - Publish new Todo messages to **AWS SQS** (simulated with LocalStack)
-- Clean architecture with separation of **Domain**, **Repository**, **Service**, and **Adapters**
+- Hexagonal architecture with separation of **Domain**, **Repository**, **Service**, and **Adapters**
 - **Unit and Integration tests**
 - **Mocked SQS** in unit tests to avoid external dependencies
 
