@@ -36,7 +36,10 @@ func (s *TodoService) Create(description string, dueDate time.Time) (domain.Todo
 	if err := s.Repo.Create(&todo); err != nil {
 		return domain.TodoItem{}, err
 	}
-	_ = s.Queue.Publish(todo)
+	err := s.Queue.Publish(todo)
+	if err != nil {
+		return domain.TodoItem{}, err
+	}
 	return todo, nil
 }
 
