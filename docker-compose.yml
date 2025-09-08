@@ -1,66 +1,57 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    container_name: todotask_postgres
+  mysql:
+    image: mysql:8.0
+    container_name: todo_mysql
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: todo
-      POSTGRES_DB: todo
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: todos
     ports:
-      - "5434:5432"
+      - "3306:3306"
     volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - heli-todo
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d todo"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 5s
       timeout: 3s
-      retries: 5
-
-  localstack:
-    image: localstack/localstack
-    container_name: todotask_localstack
-    environment:
-      SERVICES: sqs
-      DEFAULT_REGION: us-east-1
-      EDGE_PORT: 4566
-    ports:
-      - "4566:4566"
-    volumes:
-      - localstack_data:/var/lib/localstack
+      retries: 10
     networks:
-      - heli-todo
+      - todo-service1
 
+  redis:
+    image: redis:7.0
+    container_name: todo_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - todo-service1
 
   app:
     build: .
     container_name: todo_app
-    depends_on:
-      db:
-        condition: service_healthy
-      localstack:
-        condition: service_healthy
     ports:
       - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=todo
-      - DB_NAME=todo
-      - AWS_ENDPOINT=http://localstack:4566
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=fake
-      - AWS_SECRET_ACCESS_KEY=fake
+      - DB_DRIVER=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=todos
+      - REDIS_ADDR=redis:6379
+      - REDIS_STREAM=todo-stream
+      - SERVER_PORT=8080
+    command: ["/app/todo-app"]
     networks:
-      - heli-todo
+      - todo-service1
+volumes:
+  mysql_data:
 
 networks:
-  heli-todo:
-
-volumes:
-  db_data:
-  localstack_data:
+  todo-service1:

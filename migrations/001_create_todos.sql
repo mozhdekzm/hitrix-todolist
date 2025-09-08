@@ -1,0 +1,11 @@
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS todos (
+                                     id CHAR(36) PRIMARY KEY,
+    description TEXT NOT NULL,
+    due_date DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
+
+-- +migrate Down
+DROP TABLE IF EXISTS todos;

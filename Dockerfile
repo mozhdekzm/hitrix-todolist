@@ -7,15 +7,21 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o todo-app ./cmd/main.go
+# Build static binary for Linux
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/todo-app ./cmd/main.go
 
-FROM alpine:latest
+# ---- Runtime image ----
+FROM alpine:3.19
+
+# Install certificates and tzdata for TLS/time correctness
+RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
-COPY --from=builder /app/todo-app .
+COPY --from=builder /out/todo-app ./todo-app
 COPY migrations ./migrations
 
 EXPOSE 8080
 
+# Run the app directly; rely on DB retry logic or compose healthchecks
 CMD ["./todo-app"]
