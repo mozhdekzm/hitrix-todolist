@@ -3,65 +3,73 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
-	"gorm.io/gorm"
+	"log"
+
+	//"fmt"
+	//"github.com/google/uuid"
+	"github.com/latolukasz/beeorm"
+	"github.com/mozhdekzm/gqlgql/internal/domain"
 )
 
 type todoRepository struct {
-	db *gorm.DB
+	engine beeorm.Engine
 }
 
-func NewTodoRepository(db *gorm.DB) repository.TodoRepository {
-	return &todoRepository{db: db}
+func NewTodoRepository(engine beeorm.Engine) repository.TodoRepository {
+	return &todoRepository{engine: engine}
 }
 
-func (r *todoRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-	return tx, nil
-}
+func (r *todoRepository) Save(ctx context.Context, todo *domain.TodoItem) error {
+	log.Printf("ENTITY: %+v", todo)
+	fmt.Printf("engine: %+v\n", r.engine)
+	fmt.Printf("registered entities: %+v\n", r.engine.GetRegistry())
 
-func (r *todoRepository) SaveWithTx(ctx context.Context, tx *gorm.DB, todo domain.TodoItem) error {
-	return tx.WithContext(ctx).Create(todo).Error
+	r.engine.Flush(todo)
+	//flusher := r.engine.NewFlusher()
+	//flusher.Track(todo)
+	//if err := flusher.FlushWithCheck(); err != nil {
+	//	return err
+	//}
+
+	return nil
 }
 
 func (r *todoRepository) GetAll(ctx context.Context, limit, offset int) ([]domain.TodoItem, error) {
 	var todos []domain.TodoItem
-	err := r.db.WithContext(ctx).
-		Order("created_at desc").
-		Limit(limit).
-		Offset(offset).
-		Find(&todos).Error
-	if err != nil {
-		return nil, err
-	}
+	//err := r.db.WithContext(ctx).
+	//	Order("created_at desc").
+	//	Limit(limit).
+	//	Offset(offset).
+	//	Find(&todos).Error
+	//if err != nil {
+	//	return nil, err
+	//}
 	return todos, nil
 }
 
 func (r *todoRepository) FindByID(ctx context.Context, id string) (domain.TodoItem, error) {
 	var todo domain.TodoItem
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return todo, fmt.Errorf("invalid UUID: %w", err)
-	}
-	if err := r.db.WithContext(ctx).First(&todo, "id = ?", uid).Error; err != nil {
-		return todo, err
-	}
+	//uid, err := uuid.Parse(id)
+	//if err != nil {
+	//	return todo, fmt.Errorf("invalid UUID: %w", err)
+	//}
+	//if err := r.db.WithContext(ctx).First(&todo, "id = ?", uid).Error; err != nil {
+	//	return todo, err
+	//}
 	return todo, nil
 }
 
-func (r *todoRepository) UpdateWithTx(ctx context.Context, tx *gorm.DB, todo domain.TodoItem) error {
-	return tx.WithContext(ctx).Save(&todo).Error
+func (r *todoRepository) UpdateWithTx(ctx context.Context, todo domain.TodoItem) error {
+	//return tx.WithContext(ctx).Save(&todo).Error
+	return nil
 }
 
-func (r *todoRepository) DeleteWithTx(ctx context.Context, tx *gorm.DB, id string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid UUID: %w", err)
-	}
-	return tx.WithContext(ctx).Delete(&domain.TodoItem{}, "id = ?", uid).Error
+func (r *todoRepository) DeleteWithTx(ctx context.Context, id string) error {
+	//uid, err := uuid.Parse(id)
+	//if err != nil {
+	//	return fmt.Errorf("invalid UUID: %w", err)
+	//}
+	//return tx.WithContext(ctx).Delete(&domain.TodoItem{}, "id = ?", uid).Error
+	return nil
 }

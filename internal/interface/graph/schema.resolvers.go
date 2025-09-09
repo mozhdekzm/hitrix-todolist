@@ -7,16 +7,16 @@ package graph
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/mozhdekzm/gqlgql/internal/interface/graph/helpers"
 	"github.com/mozhdekzm/gqlgql/internal/interface/graph/model"
 	"time"
+
+	"github.com/mozhdekzm/gqlgql/internal/domain"
 )
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodoInput) (*model.Todo, error) {
-	newTodo := domain.TodoItem{ID: uuid.New(), Description: input.Description, DueDate: input.DueDate, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	newTodo := domain.TodoItem{Description: input.Description, DueDate: input.DueDate, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	createdTodo, err := r.TodoService.Create(ctx, newTodo)
 	if err != nil {
 		return nil, err

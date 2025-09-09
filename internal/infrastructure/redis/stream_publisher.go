@@ -31,7 +31,7 @@ func (p *streamPublisher) Publish(ctx context.Context, todo domain.TodoItem) err
 	_, err := p.client.XAdd(ctx, &redis.XAddArgs{
 		Stream: p.stream,
 		Values: map[string]interface{}{
-			"id":          todo.ID.String(),
+			"id":          todo.ID,
 			"description": todo.Description,
 			"due_date":    todo.DueDate.Format("2006-01-02T15:04:05Z07:00"),
 		},

@@ -1,13 +1,15 @@
 package domain
 
 import (
+	"github.com/latolukasz/beeorm"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type TodoItem struct {
-	ID          uuid.UUID `json:"id"`
+	beeorm.ORM  `orm:"table=todos;primary_key=id"`
+	ID          string    `json:"id"`
 	Description string    `json:"description"`
 	DueDate     time.Time `json:"due_date"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -17,7 +19,7 @@ type TodoItem struct {
 func NewTodoItem(description string, dueDate time.Time) TodoItem {
 	now := time.Now()
 	return TodoItem{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		Description: description,
 		DueDate:     dueDate,
 		CreatedAt:   now,

@@ -24,7 +24,10 @@ func main() {
 	migrator.Up()
 
 	// Setup DB and Redis
-	db := mysql.NewGormClient(cfg)
+	db, err := mysql.NewBeeORMEngine(cfg)
+	if err != nil {
+		log.Fatalf("failed to init BeeORM engine: %v", err)
+	}
 	redisClient := redis.NewRedisClient(cfg)
 
 	// Setup repositories and services

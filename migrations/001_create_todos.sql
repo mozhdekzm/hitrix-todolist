@@ -1,6 +1,6 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS todos (
-                                     id CHAR(36) PRIMARY KEY,
+    uuid CHAR(36) NOT NULL UNIQUE,
     description TEXT NOT NULL,
     due_date DATETIME NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
