@@ -6,7 +6,6 @@ require (
 	github.com/99designs/gqlgen v0.17.78
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang/mock v1.6.0
-	github.com/google/uuid v1.6.0
 	github.com/latolukasz/beeorm v1.20.1
 	github.com/redis/go-redis/v9 v9.13.0
 	github.com/rubenv/sql-migrate v1.8.0
@@ -29,6 +28,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

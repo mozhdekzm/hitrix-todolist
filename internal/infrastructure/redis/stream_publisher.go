@@ -7,6 +7,7 @@ import (
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/mozhdekzm/gqlgql/internal/interface/publisher"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 // use for tests
@@ -27,17 +28,51 @@ func NewStreamPublisher(client RedisClient, cfg *config.Config) publisher.Stream
 	}
 }
 
-func (p *streamPublisher) Publish(ctx context.Context, todo domain.TodoItem) error {
+func (p *streamPublisher) PublishCreate(ctx context.Context, todo domain.TodoItem) error {
+	return p.publishEvent(ctx, "CREATE", todo)
+}
+
+func (p *streamPublisher) PublishUpdate(ctx context.Context, todo domain.TodoItem) error {
+	return p.publishEvent(ctx, "UPDATE", todo)
+}
+
+func (p *streamPublisher) PublishDelete(ctx context.Context, id uint64) error {
+	return p.publishEvent(ctx, "DELETE", domain.TodoItem{ID: id})
+}
+
+func (p *streamPublisher) PublishOutboxEvent(ctx context.Context, event domain.OutboxEvent) error {
 	_, err := p.client.XAdd(ctx, &redis.XAddArgs{
 		Stream: p.stream,
 		Values: map[string]interface{}{
-			"id":          todo.ID,
-			"description": todo.Description,
-			"due_date":    todo.DueDate.Format("2006-01-02T15:04:05Z07:00"),
+			"event_id":    event.ID,
+			"event_type":  event.EventType,
+			"entity_id":   event.EntityID,
+			"entity_type": event.EntityType,
+			"payload":     event.Payload,
+			"timestamp":   event.CreatedAt.Unix(),
 		},
 	}).Result()
 	if err != nil {
-		return fmt.Errorf("failed to publish to redis stream: %w", err)
+		return fmt.Errorf("failed to publish outbox event to redis stream: %w", err)
+	}
+	return nil
+}
+
+func (p *streamPublisher) publishEvent(ctx context.Context, eventType string, todo domain.TodoItem) error {
+	_, err := p.client.XAdd(ctx, &redis.XAddArgs{
+		Stream: p.stream,
+		Values: map[string]interface{}{
+			"event_type":  eventType,
+			"id":          todo.ID,
+			"description": todo.Description,
+			"due_date":    todo.DueDate.Format("2006-01-02T15:04:05Z07:00"),
+			"created_at":  todo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			"updated_at":  todo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			"timestamp":   time.Now().Unix(),
+		},
+	}).Result()
+	if err != nil {
+		return fmt.Errorf("failed to publish %s event to redis stream: %w", eventType, err)
 	}
 	return nil
 }

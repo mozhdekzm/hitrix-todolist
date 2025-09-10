@@ -51,7 +51,7 @@ func (mr *MockTodoRepositoryMockRecorder) GetAll(arg0, arg1, arg2 interface{}) *
 }
 
 // Save mocks base method.
-func (m *MockTodoRepository) Save(arg0 context.Context, arg1 domain.TodoItem) error {
+func (m *MockTodoRepository) Save(arg0 context.Context, arg1 *domain.TodoItem) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -62,4 +62,47 @@ func (m *MockTodoRepository) Save(arg0 context.Context, arg1 domain.TodoItem) er
 func (mr *MockTodoRepositoryMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockTodoRepository)(nil).Save), arg0, arg1)
+}
+
+// FindByID mocks base method.
+func (m *MockTodoRepository) FindByID(arg0 context.Context, arg1 uint64) (domain.TodoItem, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", arg0, arg1)
+	ret0, _ := ret[0].(domain.TodoItem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockTodoRepositoryMockRecorder) FindByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockTodoRepository)(nil).FindByID), arg0, arg1)
+}
+
+// UpdateWithTx mocks base method.
+func (m *MockTodoRepository) UpdateWithTx(arg0 context.Context, arg1 domain.TodoItem) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWithTx", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWithTx indicates an expected call of UpdateWithTx.
+func (mr *MockTodoRepositoryMockRecorder) UpdateWithTx(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithTx", reflect.TypeOf((*MockTodoRepository)(nil).UpdateWithTx), arg0, arg1)
+}
+
+// DeleteWithTx mocks base method.
+func (m *MockTodoRepository) DeleteWithTx(arg0 context.Context, arg1 uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteWithTx", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteWithTx indicates an expected call of DeleteWithTx.
+func (mr *MockTodoRepositoryMockRecorder) DeleteWithTx(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWithTx", reflect.TypeOf((*MockTodoRepository)(nil).DeleteWithTx), arg0, arg1)
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/latolukasz/beeorm"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,9 +20,13 @@ func TestTodoService_Create(t *testing.T) {
 	defer ctrl.Finish()
 
 	repoMock := repository.NewMockTodoRepository(ctrl)
+	outboxRepoMock := repository.NewMockOutboxRepository(ctrl)
 	pubMock := publisher.NewMockStreamPublisher(ctrl)
 
-	service := usecase.NewTodoService(repoMock, pubMock)
+	// Create a mock BeeORM engine - for testing we'll use nil
+	var mockEngine beeorm.Engine
+
+	service := usecase.NewTodoService(repoMock, outboxRepoMock, pubMock, mockEngine)
 
 	todo := domain.TodoItem{
 		ID:          1,

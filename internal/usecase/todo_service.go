@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/latolukasz/beeorm"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/mozhdekzm/gqlgql/internal/interface/publisher"
 	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
@@ -12,37 +13,48 @@ import (
 
 type TodoService struct {
 	todoRepo       repository.TodoRepository
+	outboxRepo     repository.OutboxRepository
 	redisPublisher publisher.StreamPublisher
+	engine         beeorm.Engine
 }
 
-func NewTodoService(todoRepo repository.TodoRepository, redisPublisher publisher.StreamPublisher) *TodoService {
+func NewTodoService(todoRepo repository.TodoRepository, outboxRepo repository.OutboxRepository, redisPublisher publisher.StreamPublisher, engine beeorm.Engine) *TodoService {
 	return &TodoService{
 		todoRepo:       todoRepo,
+		outboxRepo:     outboxRepo,
 		redisPublisher: redisPublisher,
+		engine:         engine,
 	}
 }
 
 func (s *TodoService) Create(ctx context.Context, todo domain.TodoItem) (domain.TodoItem, error) {
-	//tx, err := s.todoRepo.BeginTx(ctx)
-	//if err != nil {
-	//	return domain.TodoItem{}, fmt.Errorf("failed to begin tx: %w", err)
-	//}
-
-	fmt.Println("TODO Create startedDDDDD")
-	if err := s.todoRepo.Save(ctx, &todo); err != nil {
-		//tx.Rollback()
-		return domain.TodoItem{}, fmt.Errorf("failed to save todo: %w", err)
+	// Create outbox event
+	outboxEvent, err := domain.NewOutboxEvent("CREATE", "TodoItem", todo.ID, todo)
+	if err != nil {
+		return domain.TodoItem{}, fmt.Errorf("failed to create outbox event: %w", err)
 	}
 
-	if err := s.redisPublisher.Publish(ctx, todo); err != nil {
-		//tx.Rollback()
-		return domain.TodoItem{}, fmt.Errorf("failed to publish to redis: %w", err)
+	// Use beeorm transaction to ensure consistency
+	flusher := s.engine.NewFlusher()
+
+	// Track todo and outbox event together
+	flusher.Track(&todo)
+	flusher.Track(outboxEvent)
+
+	// Commit both in single transaction
+	if err := flusher.FlushWithCheck(); err != nil {
+		return domain.TodoItem{}, fmt.Errorf("failed to save todo and outbox event: %w", err)
 	}
 
-	//if err := tx.Commit().Error; err != nil {
-	//	tx.Rollback()
-	//	return domain.TodoItem{}, fmt.Errorf("failed to commit tx: %w", err)
-	//}
+	// Publish event asynchronously (best effort)
+	go func() {
+		if err := s.redisPublisher.PublishOutboxEvent(context.Background(), *outboxEvent); err != nil {
+			fmt.Printf("Failed to publish outbox event: %v\n", err)
+		} else {
+			// Mark as published if successful
+			s.outboxRepo.MarkAsPublished(context.Background(), outboxEvent.ID)
+		}
+	}()
 
 	return todo, nil
 }
@@ -65,51 +77,77 @@ func (s *TodoService) FindByID(ctx context.Context, id uint64) (domain.TodoItem,
 }
 
 func (s *TodoService) Update(ctx context.Context, todo domain.TodoItem) (domain.TodoItem, error) {
-	//tx, err := s.todoRepo.BeginTx(ctx)
-	//if err != nil {
-	//	return domain.TodoItem{}, fmt.Errorf("failed to begin tx: %w", err)
-	//}
-
 	todo.UpdatedAt = time.Now()
 
-	if err := s.todoRepo.UpdateWithTx(ctx, todo); err != nil {
-		//tx.Rollback()
-		return domain.TodoItem{}, fmt.Errorf("failed to update todo: %w", err)
+	// Create outbox event
+	outboxEvent, err := domain.NewOutboxEvent("UPDATE", "TodoItem", todo.ID, todo)
+	if err != nil {
+		return domain.TodoItem{}, fmt.Errorf("failed to create outbox event: %w", err)
 	}
 
-	if err := s.redisPublisher.Publish(ctx, todo); err != nil {
-		//tx.Rollback()
-		return domain.TodoItem{}, fmt.Errorf("failed to publish update to redis: %w", err)
+	// Load existing todo first for beeorm tracking
+	existingTodo, err := s.todoRepo.FindByID(ctx, todo.ID)
+	if err != nil {
+		return domain.TodoItem{}, fmt.Errorf("failed to find existing todo: %w", err)
 	}
 
-	//if err := tx.Commit().Error; err != nil {
-	//	tx.Rollback()
-	//	return domain.TodoItem{}, fmt.Errorf("failed to commit tx: %w", err)
-	//}
+	// Update fields
+	existingTodo.Description = todo.Description
+	existingTodo.DueDate = todo.DueDate
+	existingTodo.UpdatedAt = todo.UpdatedAt
 
-	return todo, nil
+	// Use beeorm transaction
+	flusher := s.engine.NewFlusher()
+	flusher.Track(&existingTodo)
+	flusher.Track(outboxEvent)
+
+	if err := flusher.FlushWithCheck(); err != nil {
+		return domain.TodoItem{}, fmt.Errorf("failed to update todo and save outbox event: %w", err)
+	}
+
+	// Publish event asynchronously
+	go func() {
+		if err := s.redisPublisher.PublishOutboxEvent(context.Background(), *outboxEvent); err != nil {
+			fmt.Printf("Failed to publish update outbox event: %v\n", err)
+		} else {
+			s.outboxRepo.MarkAsPublished(context.Background(), outboxEvent.ID)
+		}
+	}()
+
+	return existingTodo, nil
 }
 
 func (s *TodoService) Delete(ctx context.Context, id uint64) error {
-	//tx, err := s.todoRepo.BeginTx(ctx)
-	//if err != nil {
-	//	return fmt.Errorf("failed to begin tx: %w", err)
-	//}
-
-	if err := s.todoRepo.DeleteWithTx(ctx, id); err != nil {
-		//tx.Rollback()
-		return fmt.Errorf("failed to delete todo: %w", err)
+	// Create outbox event
+	outboxEvent, err := domain.NewOutboxEvent("DELETE", "TodoItem", id, map[string]interface{}{"id": id})
+	if err != nil {
+		return fmt.Errorf("failed to create outbox event: %w", err)
 	}
 
-	if err := s.redisPublisher.Publish(ctx, domain.TodoItem{ID: id}); err != nil {
-		//tx.Rollback()
-		return fmt.Errorf("failed to publish delete to redis: %w", err)
+	// Load existing todo for beeorm tracking
+	var existingTodo domain.TodoItem
+	has := s.engine.LoadByID(id, &existingTodo)
+	if !has {
+		return fmt.Errorf("todo with id %d not found", id)
 	}
 
-	//if err := tx.Commit().Error; err != nil {
-	//	tx.Rollback()
-	//	return fmt.Errorf("failed to commit tx: %w", err)
-	//}
+	// Use beeorm transaction
+	flusher := s.engine.NewFlusher()
+	flusher.Delete(&existingTodo)
+	flusher.Track(outboxEvent)
+
+	if err := flusher.FlushWithCheck(); err != nil {
+		return fmt.Errorf("failed to delete todo and save outbox event: %w", err)
+	}
+
+	// Publish event asynchronously
+	go func() {
+		if err := s.redisPublisher.PublishOutboxEvent(context.Background(), *outboxEvent); err != nil {
+			fmt.Printf("Failed to publish delete outbox event: %v\n", err)
+		} else {
+			s.outboxRepo.MarkAsPublished(context.Background(), outboxEvent.ID)
+		}
+	}()
 
 	return nil
 }

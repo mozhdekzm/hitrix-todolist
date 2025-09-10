@@ -23,6 +23,7 @@ func NewBeeORMEngine(cfg *config.Config) (beeorm.Engine, error) {
 	reg.RegisterMySQLPool(dsn, "default")
 
 	reg.RegisterEntity(&domain.TodoItem{})
+	reg.RegisterEntity(&domain.OutboxEvent{})
 
 	validated, err := reg.Validate()
 	if err != nil {
