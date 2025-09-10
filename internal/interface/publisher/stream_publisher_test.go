@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/mozhdekzm/gqlgql/internal/config"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +23,7 @@ func TestStreamPublisher_Publish_WithGomock(t *testing.T) {
 	publisher := redis2.NewStreamPublisher(mockRedisClient, cfg)
 
 	todo := domain.TodoItem{
-		ID:          uuid.New(),
+		ID:          1,
 		Description: "Test task",
 		DueDate:     time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 		CreatedAt:   time.Now(),

@@ -4,10 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
-	"log"
 
-	//"fmt"
-	//"github.com/google/uuid"
 	"github.com/latolukasz/beeorm"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 )
@@ -21,55 +18,60 @@ func NewTodoRepository(engine beeorm.Engine) repository.TodoRepository {
 }
 
 func (r *todoRepository) Save(ctx context.Context, todo *domain.TodoItem) error {
-	log.Printf("ENTITY: %+v", todo)
-	fmt.Printf("engine: %+v\n", r.engine)
-	fmt.Printf("registered entities: %+v\n", r.engine.GetRegistry())
-
-	r.engine.Flush(todo)
-	//flusher := r.engine.NewFlusher()
-	//flusher.Track(todo)
-	//if err := flusher.FlushWithCheck(); err != nil {
-	//	return err
-	//}
-
-	return nil
+	flusher := r.engine.NewFlusher()
+	flusher.Track(todo)
+	return flusher.FlushWithCheck()
 }
 
 func (r *todoRepository) GetAll(ctx context.Context, limit, offset int) ([]domain.TodoItem, error) {
-	var todos []domain.TodoItem
-	//err := r.db.WithContext(ctx).
-	//	Order("created_at desc").
-	//	Limit(limit).
-	//	Offset(offset).
-	//	Find(&todos).Error
-	//if err != nil {
-	//	return nil, err
-	//}
-	return todos, nil
+	var todos []*domain.TodoItem
+	where := beeorm.NewWhere("1 = 1")
+	pager := beeorm.NewPager(offset+1, limit)
+	r.engine.Search(where, pager, &todos)
+
+	// Convert pointers to values
+	result := make([]domain.TodoItem, len(todos))
+	for i, todo := range todos {
+		result[i] = *todo
+	}
+	return result, nil
 }
 
-func (r *todoRepository) FindByID(ctx context.Context, id string) (domain.TodoItem, error) {
+func (r *todoRepository) FindByID(ctx context.Context, id uint64) (domain.TodoItem, error) {
 	var todo domain.TodoItem
-	//uid, err := uuid.Parse(id)
-	//if err != nil {
-	//	return todo, fmt.Errorf("invalid UUID: %w", err)
-	//}
-	//if err := r.db.WithContext(ctx).First(&todo, "id = ?", uid).Error; err != nil {
-	//	return todo, err
-	//}
+	has := r.engine.LoadByID(id, &todo)
+	if !has {
+		return todo, fmt.Errorf("todo with id %d not found", id)
+	}
 	return todo, nil
 }
 
 func (r *todoRepository) UpdateWithTx(ctx context.Context, todo domain.TodoItem) error {
-	//return tx.WithContext(ctx).Save(&todo).Error
-	return nil
+	// First load the existing entity to ensure it's tracked by beeorm
+	var existingTodo domain.TodoItem
+	has := r.engine.LoadByID(todo.ID, &existingTodo)
+	if !has {
+		return fmt.Errorf("todo with id %d not found", todo.ID)
+	}
+
+	// Update the fields
+	existingTodo.Description = todo.Description
+	existingTodo.DueDate = todo.DueDate
+	existingTodo.UpdatedAt = todo.UpdatedAt
+
+	// Track and flush the changes
+	flusher := r.engine.NewFlusher()
+	flusher.Track(&existingTodo)
+	return flusher.FlushWithCheck()
 }
 
-func (r *todoRepository) DeleteWithTx(ctx context.Context, id string) error {
-	//uid, err := uuid.Parse(id)
-	//if err != nil {
-	//	return fmt.Errorf("invalid UUID: %w", err)
-	//}
-	//return tx.WithContext(ctx).Delete(&domain.TodoItem{}, "id = ?", uid).Error
-	return nil
+func (r *todoRepository) DeleteWithTx(ctx context.Context, id uint64) error {
+	var todo domain.TodoItem
+	has := r.engine.LoadByID(id, &todo)
+	if !has {
+		return fmt.Errorf("todo with id %d not found", id)
+	}
+	flusher := r.engine.NewFlusher()
+	flusher.Delete(&todo)
+	return flusher.FlushWithCheck()
 }

@@ -56,7 +56,7 @@ func (s *TodoService) GetAll(ctx context.Context, limit int, offset int) ([]doma
 	return todos, nil
 }
 
-func (s *TodoService) FindByID(ctx context.Context, id string) (domain.TodoItem, error) {
+func (s *TodoService) FindByID(ctx context.Context, id uint64) (domain.TodoItem, error) {
 	todo, err := s.todoRepo.FindByID(ctx, id)
 	if err != nil {
 		return domain.TodoItem{}, fmt.Errorf("failed to find todo by id: %w", err)
@@ -90,7 +90,7 @@ func (s *TodoService) Update(ctx context.Context, todo domain.TodoItem) (domain.
 	return todo, nil
 }
 
-func (s *TodoService) Delete(ctx context.Context, id string) error {
+func (s *TodoService) Delete(ctx context.Context, id uint64) error {
 	//tx, err := s.todoRepo.BeginTx(ctx)
 	//if err != nil {
 	//	return fmt.Errorf("failed to begin tx: %w", err)

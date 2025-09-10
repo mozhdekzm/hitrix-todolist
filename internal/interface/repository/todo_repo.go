@@ -10,7 +10,7 @@ import (
 type TodoRepository interface {
 	Save(ctx context.Context, todo *domain.TodoItem) error
 	UpdateWithTx(ctx context.Context, todo domain.TodoItem) error
-	DeleteWithTx(ctx context.Context, id string) error
+	DeleteWithTx(ctx context.Context, id uint64) error
 	GetAll(ctx context.Context, limit int, offset int) ([]domain.TodoItem, error)
-	FindByID(ctx context.Context, id string) (domain.TodoItem, error)
+	FindByID(ctx context.Context, id uint64) (domain.TodoItem, error)
 }

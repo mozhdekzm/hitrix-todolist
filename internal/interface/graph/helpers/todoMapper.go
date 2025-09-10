@@ -7,7 +7,7 @@ import (
 
 func MapDomainTodoToModel(t domain.TodoItem) *model.Todo {
 	return &model.Todo{
-		ID:          t.ID,
+		ID:          int64(t.ID),
 		Description: t.Description,
 		DueDate:     t.DueDate,
 		CreatedAt:   t.CreatedAt,

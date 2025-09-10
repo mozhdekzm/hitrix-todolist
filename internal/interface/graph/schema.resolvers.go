@@ -7,11 +7,11 @@ package graph
 import (
 	"context"
 	"fmt"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph/helpers"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph/model"
 	"time"
 
 	"github.com/mozhdekzm/gqlgql/internal/domain"
+	"github.com/mozhdekzm/gqlgql/internal/interface/graph/helpers"
+	"github.com/mozhdekzm/gqlgql/internal/interface/graph/model"
 )
 
 // CreateTodo is the resolver for the createTodo field.
@@ -26,13 +26,17 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodoIn
 
 // UpdateTodo is the resolver for the updateTodo field.
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
-	existingTodo, err := r.TodoService.FindByID(ctx, input.ID)
+	existingTodo, err := r.TodoService.FindByID(ctx, uint64(input.ID))
 	if err != nil {
 		return nil, fmt.Errorf("todo not found: %w", err)
 	}
 
-	existingTodo.Description = *input.Description
-	existingTodo.DueDate = *input.DueDate
+	if input.Description != nil {
+		existingTodo.Description = *input.Description
+	}
+	if input.DueDate != nil {
+		existingTodo.DueDate = *input.DueDate
+	}
 	existingTodo.UpdatedAt = time.Now()
 
 	updatedTodo, err := r.TodoService.Update(ctx, existingTodo)
@@ -44,8 +48,8 @@ func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTod
 }
 
 // DeleteTodo is the resolver for the deleteTodo field.
-func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (bool, error) {
-	err := r.TodoService.Delete(ctx, id)
+func (r *mutationResolver) DeleteTodo(ctx context.Context, id int64) (bool, error) {
+	err := r.TodoService.Delete(ctx, uint64(id))
 	if err != nil {
 		return false, err
 	}
@@ -68,8 +72,8 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 }
 
 // Todo is the resolver for the todo field.
-func (r *queryResolver) Todo(ctx context.Context, id string) (*model.Todo, error) {
-	todo, err := r.TodoService.FindByID(ctx, id)
+func (r *queryResolver) Todo(ctx context.Context, id int64) (*model.Todo, error) {
+	todo, err := r.TodoService.FindByID(ctx, uint64(id))
 	if err != nil {
 		return nil, err
 	}

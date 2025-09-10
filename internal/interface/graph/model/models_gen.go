@@ -18,7 +18,7 @@ type Query struct {
 }
 
 type Todo struct {
-	ID          string    `json:"id"`
+	ID          int64     `json:"id"`
 	Description string    `json:"description"`
 	DueDate     time.Time `json:"dueDate"`
 	CreatedAt   time.Time `json:"createdAt"`
@@ -26,7 +26,7 @@ type Todo struct {
 }
 
 type UpdateTodoInput struct {
-	ID          string     `json:"id"`
+	ID          int64      `json:"id"`
 	Description *string    `json:"description,omitempty"`
 	DueDate     *time.Time `json:"dueDate,omitempty"`
 }

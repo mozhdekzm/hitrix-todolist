@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,7 +24,7 @@ func TestTodoService_Create(t *testing.T) {
 	service := usecase.NewTodoService(repoMock, pubMock)
 
 	todo := domain.TodoItem{
-		ID:          uuid.New(),
+		ID:          1,
 		Description: "test task",
 		DueDate:     time.Now(),
 		CreatedAt:   time.Now(),

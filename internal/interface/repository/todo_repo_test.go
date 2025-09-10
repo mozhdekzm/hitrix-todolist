@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	repository "github.com/mozhdekzm/gqlgql/internal/interface/repository/mock"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +27,7 @@ func TestMySQLTodoRepository_Save_ValidationAndPersistence(t *testing.T) {
 		{
 			name: "valid todo with all fields",
 			todo: domain.TodoItem{
-				ID:          uuid.New(),
+				ID:          1,
 				Description: "Complete task with all required fields",
 				DueDate:     time.Date(2024, 8, 15, 10, 0, 0, 0, time.UTC),
 				CreatedAt:   time.Now(),
@@ -39,7 +38,7 @@ func TestMySQLTodoRepository_Save_ValidationAndPersistence(t *testing.T) {
 		{
 			name: "todo with empty description",
 			todo: domain.TodoItem{
-				ID:          uuid.New(),
+				ID:          2,
 				Description: "",
 				DueDate:     time.Date(2024, 8, 15, 10, 0, 0, 0, time.UTC),
 				CreatedAt:   time.Now(),
@@ -50,7 +49,7 @@ func TestMySQLTodoRepository_Save_ValidationAndPersistence(t *testing.T) {
 		{
 			name: "todo with very long description",
 			todo: domain.TodoItem{
-				ID: uuid.New(),
+				ID: 3,
 				Description: "This is a very long description that tests the database field limits. " +
 					"It contains many characters to ensure the repository can handle long text properly. " +
 					"This should be saved successfully in the database without any truncation issues.",
@@ -61,16 +60,16 @@ func TestMySQLTodoRepository_Save_ValidationAndPersistence(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "todo with nil UUID",
+			name: "todo with zero ID",
 			todo: domain.TodoItem{
-				ID:          uuid.Nil,
-				Description: "Task with nil UUID",
+				ID:          0,
+				Description: "Task with zero ID",
 				DueDate:     time.Date(2024, 8, 15, 10, 0, 0, 0, time.UTC),
 				CreatedAt:   time.Now(),
 				UpdatedAt:   time.Now(),
 			},
 			expectError: true,
-			errorMsg:    "invalid UUID",
+			errorMsg:    "invalid ID",
 		},
 	}
 
@@ -98,7 +97,7 @@ func TestMySQLTodoRepository_Save_ValidationAndPersistence(t *testing.T) {
 			}
 
 			if !tt.expectError {
-				assert.NotEqual(t, uuid.Nil, tt.todo.ID)
+				assert.NotEqual(t, uint64(0), tt.todo.ID)
 			}
 			assert.NotNil(t, tt.todo.CreatedAt)
 			assert.NotNil(t, tt.todo.UpdatedAt)
@@ -114,14 +113,14 @@ func TestMySQLTodoRepository_GetAll_WithMock(t *testing.T) {
 
 	todos := []domain.TodoItem{
 		{
-			ID:          uuid.New(),
+			ID:          1,
 			Description: "Task 1",
 			DueDate:     time.Date(2024, 9, 15, 10, 0, 0, 0, time.UTC),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          2,
 			Description: "Task 2",
 			DueDate:     time.Date(2024, 9, 12, 10, 0, 0, 0, time.UTC),
 			CreatedAt:   time.Now(),
