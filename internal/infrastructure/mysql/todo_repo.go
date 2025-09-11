@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
 
-	"github.com/latolukasz/beeorm"
+	"git.ice.global/packages/beeorm/v4"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 )
 
@@ -28,7 +28,6 @@ func (r *todoRepository) GetAll(ctx context.Context, limit, offset int) ([]domai
 	where := beeorm.NewWhere("1 = 1")
 	pager := beeorm.NewPager(offset+1, limit)
 	r.engine.Search(where, pager, &todos)
-
 	// Convert pointers to values
 	result := make([]domain.TodoItem, len(todos))
 	for i, todo := range todos {

@@ -1,13 +1,13 @@
 package domain
 
 import (
-	"github.com/latolukasz/beeorm"
+	"git.ice.global/packages/beeorm/v4"
 	"time"
 )
 
 type TodoItem struct {
-	beeorm.ORM  `orm:"table=todos"`
-	ID          uint64    `orm:"localCache;searchable"`
+	beeorm.ORM  `orm:"table=todos,redisCache"`
+	ID          uint64    `orm:"localCache;"`
 	Description string    `orm:"required"`
 	DueDate     time.Time `orm:"required"`
 	CreatedAt   time.Time `orm:"time=true"`

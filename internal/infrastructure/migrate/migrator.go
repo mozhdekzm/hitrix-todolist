@@ -3,9 +3,8 @@ package migrate
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	"github.com/mozhdekzm/gqlgql/internal/config"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	migrate "github.com/rubenv/sql-migrate"

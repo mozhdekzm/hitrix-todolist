@@ -3,19 +3,20 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"git.ice.global/packages/hitrix/service"
 	"time"
 
-	"github.com/latolukasz/beeorm"
+	"git.ice.global/packages/beeorm/v4"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
 )
 
 type outboxRepository struct {
-	engine beeorm.Engine
+	engine *beeorm.Engine
 }
 
-func NewOutboxRepository(engine beeorm.Engine) repository.OutboxRepository {
-	return &outboxRepository{engine: engine}
+func NewOutboxRepository() repository.OutboxRepository {
+	return &outboxRepository{engine: service.DI().OrmEngine()}
 }
 
 func (r *outboxRepository) Save(ctx context.Context, event *domain.OutboxEvent) error {

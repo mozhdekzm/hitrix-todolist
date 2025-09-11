@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/latolukasz/beeorm"
+	"git.ice.global/packages/beeorm/v4"
 )
 
 type OutboxEvent struct {
-	beeorm.ORM `orm:"table=outbox_events"`
-	ID         uint64    `orm:"localCache;searchable"`
+	beeorm.ORM `orm:"table=outbox_events,redisCache"`
+	ID         uint64    `orm:"localCache;"`
 	EventType  string    `orm:"required"`
 	EntityID   uint64    `orm:"required"`
 	EntityType string    `orm:"required"`

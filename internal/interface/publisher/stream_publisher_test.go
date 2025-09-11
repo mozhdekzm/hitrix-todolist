@@ -3,12 +3,12 @@ package publisher_test
 import (
 	"context"
 	"errors"
+	"github.com/mozhdekzm/gqlgql/internal/config"
 	redis2 "github.com/mozhdekzm/gqlgql/internal/infrastructure/redis"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/mozhdekzm/gqlgql/internal/config"
 	"github.com/mozhdekzm/gqlgql/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
