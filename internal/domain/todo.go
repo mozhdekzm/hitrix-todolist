@@ -6,8 +6,8 @@ import (
 )
 
 type TodoItem struct {
-	beeorm.ORM  `orm:"table=todos,redisCache"`
-	ID          uint64    `orm:"localCache;"`
+	beeorm.ORM  `orm:"table=todos;redisCache"`
+	ID          uint64    `orm:"required"`
 	Description string    `orm:"required"`
 	DueDate     time.Time `orm:"required"`
 	CreatedAt   time.Time `orm:"time=true"`

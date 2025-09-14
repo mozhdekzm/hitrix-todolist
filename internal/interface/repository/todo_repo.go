@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
 )
 
 //go:generate mockgen -destination=mock/todo_repo_mock.go -package=repository github.com/mozhdekzm/gqlgql/internal/interface/repository TodoRepository

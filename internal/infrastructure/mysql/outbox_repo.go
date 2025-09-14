@@ -3,20 +3,20 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"git.ice.global/packages/hitrix/service"
+	"git.ice.global/packages/beeorm/v4"
 	"time"
 
-	"git.ice.global/packages/beeorm/v4"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/repository"
 )
 
 type outboxRepository struct {
 	engine *beeorm.Engine
+	//rr *beeorm.RedisCache
 }
 
-func NewOutboxRepository() repository.OutboxRepository {
-	return &outboxRepository{engine: service.DI().OrmEngine()}
+func NewOutboxRepository(engine *beeorm.Engine) repository.OutboxRepository {
+	return &outboxRepository{engine: engine}
 }
 
 func (r *outboxRepository) Save(ctx context.Context, event *domain.OutboxEvent) error {
@@ -31,6 +31,8 @@ func (r *outboxRepository) GetUnpublished(ctx context.Context, limit int) ([]dom
 	pager := beeorm.NewPager(1, limit)
 	r.engine.Search(where, pager, &events)
 
+	//x:=r.rr.PipeLine()
+	//x.
 	// Convert pointers to values
 	result := make([]domain.OutboxEvent, len(events))
 	for i, event := range events {

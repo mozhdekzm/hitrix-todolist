@@ -3,9 +3,9 @@ package redis
 import (
 	"context"
 	"fmt"
-	"github.com/mozhdekzm/gqlgql/internal/config"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/interface/publisher"
+	"github.com/mozhdekzm/hitrix-todolist/config"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/publisher"
 	"github.com/redis/go-redis/v9"
 	"time"
 )

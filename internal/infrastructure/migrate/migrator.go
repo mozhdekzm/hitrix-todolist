@@ -3,7 +3,7 @@ package migrate
 import (
 	"database/sql"
 	"fmt"
-	"github.com/mozhdekzm/gqlgql/internal/config"
+	"github.com/mozhdekzm/hitrix-todolist/config"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"

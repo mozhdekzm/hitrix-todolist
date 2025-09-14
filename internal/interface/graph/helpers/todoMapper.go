@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph/model"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/graph/model"
 )
 
 func MapDomainTodoToModel(t domain.TodoItem) *model.Todo {

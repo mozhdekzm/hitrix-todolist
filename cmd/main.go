@@ -3,20 +3,14 @@ package main
 import (
 	"context"
 	"git.ice.global/packages/hitrix"
+	"git.ice.global/packages/hitrix/service"
 	"git.ice.global/packages/hitrix/service/component/app"
 	"git.ice.global/packages/hitrix/service/registry"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/gin-gonic/gin"
-	"github.com/mozhdekzm/gqlgql/internal/config"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/infrastructure/migrate"
-	"github.com/mozhdekzm/gqlgql/internal/infrastructure/mysql"
-	"github.com/mozhdekzm/gqlgql/internal/infrastructure/redis"
-	"github.com/mozhdekzm/gqlgql/internal/infrastructure/worker"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph"
-	"github.com/mozhdekzm/gqlgql/internal/usecase"
-
+	"github.com/mozhdekzm/hitrix-todolist/config"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/graph"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -24,29 +18,42 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/mozhdekzm/hitrix-todolist/internal/infrastructure/migrate"
+	"github.com/mozhdekzm/hitrix-todolist/internal/infrastructure/mysql"
+	"github.com/mozhdekzm/hitrix-todolist/internal/infrastructure/redis"
+	"github.com/mozhdekzm/hitrix-todolist/internal/infrastructure/worker"
+	"github.com/mozhdekzm/hitrix-todolist/internal/usecase"
 )
 
 func main() {
+	// Load configuration
 	cfg := config.Load()
 
 	// Run migrations
 	migrator := migrate.NewMigrator(cfg)
 	migrator.Up()
 
-	// Hitrix Server
+	// Setup DB
+	//db, err := mysql.NewBeeORMEngine(cfg)
+	//if err != nil {
+	//	log.Fatalf("failed to init BeeORM engine: %v", err)
+	//}
+
+	// Setup Redis
+	redisClient := redis.NewRedisClient(cfg)
+
+	// Build Hitrix server and register global services including Redis pools
 	s, deferFunc := hitrix.New(
-		"gqlgql",
-		"secret",
+		"my-app", "secret",
 	).RegisterDIGlobalService(
+		registry.ServiceProviderGenerator(),
 		registry.ServiceProviderErrorLogger(),
 		registry.ServiceProviderConfigDirectory("config"),
+		registry.ServiceProviderClock(),
 		registry.ServiceProviderOrmRegistry(domain.Init),
 		registry.ServiceProviderOrmEngine(),
-		registry.ServiceProviderClock(),
-		registry.ServiceProviderJWT(),
-		registry.ServiceProviderPassword(),
 	).RegisterDIRequestService(
 		registry.ServiceProviderOrmEngineForContext(false),
 	).RegisterRedisPools(&app.RedisPools{
@@ -55,38 +62,38 @@ func main() {
 	}).Build()
 	defer deferFunc()
 
-	// Setup DB & Redis manually (می‌تونی اینا رو هم توی DI بندازی)
-	db, err := mysql.NewBeeORMEngine(cfg)
-	if err != nil {
-		log.Fatalf("failed to init BeeORM engine: %v", err)
-	}
-	redisClient := redis.NewRedisClient(cfg)
+	// Start background processors **after Redis pool is registered**
+	b := &hitrix.BackgroundProcessor{Server: s}
+	b.RunAsyncOrmConsumer()
+	b.RunAsyncRequestLoggerCleaner()
 
-	// Repositories & Services
-	todoRepo := mysql.NewTodoRepository(*db)
-	outboxRepo := mysql.NewOutboxRepository()
+	// Setup repositories and services
+	ormengine := service.DI().OrmEngine()
+	todoRepo := mysql.NewTodoRepository(ormengine)
+	outboxRepo := mysql.NewOutboxRepository(ormengine)
 	streamPublisher := redis.NewStreamPublisher(*redisClient, cfg)
-	todoService := usecase.NewTodoService(todoRepo, outboxRepo, streamPublisher)
+	todoService := usecase.NewTodoService(todoRepo, outboxRepo, streamPublisher, ormengine)
 
-	// GraphQL Resolver
+	// Setup GraphQL resolver
 	resolver := &graph.Resolver{
 		TodoService: *todoService,
 	}
 
-	// gqlgen server
+	// Setup gqlgen server
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.MultipartForm{})
 	srv.Use(extension.Introspection{})
 
-	// Outbox Worker
+	// Start outbox worker
 	outboxWorker := worker.NewOutboxWorker(outboxRepo, streamPublisher)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	go outboxWorker.Start(ctx)
 
-	// Graceful Shutdown
+	// Setup graceful shutdown
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -97,17 +104,9 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Run Hitrix server
 	port, _ := strconv.Atoi(cfg.ServerPort)
-	s.RunServer(uint(port), graph.NewExecutableSchema(graph.Config{Resolvers: resolver}),
-		func(ginEngine *gin.Engine) {
-			// GraphQL routes
-			ginEngine.GET("/", func(c *gin.Context) {
-				playground.Handler("GraphQL playground", "/query").ServeHTTP(c.Writer, c.Request)
-			})
-			ginEngine.POST("/query", func(c *gin.Context) {
-				srv.ServeHTTP(c.Writer, c.Request)
-			})
-		}, nil,
-	)
+	s.RunServer(uint(port), graph.NewExecutableSchema(graph.Config{Resolvers: resolver}), nil, nil)
+
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }

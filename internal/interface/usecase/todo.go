@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/mozhdekzm/gqlgql/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
 )
 
 type TodoService interface {

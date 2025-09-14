@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph/helpers"
-	"github.com/mozhdekzm/gqlgql/internal/interface/graph/model"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/graph/helpers"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/graph/model"
 )
 
 // CreateTodo is the resolver for the createTodo field.

@@ -3,17 +3,17 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
-
 	"git.ice.global/packages/beeorm/v4"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/repository"
+
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
 )
 
 type todoRepository struct {
-	engine beeorm.Engine
+	engine *beeorm.Engine
 }
 
-func NewTodoRepository(engine beeorm.Engine) repository.TodoRepository {
+func NewTodoRepository(engine *beeorm.Engine) repository.TodoRepository {
 	return &todoRepository{engine: engine}
 }
 

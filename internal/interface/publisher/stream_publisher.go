@@ -2,7 +2,7 @@ package publisher
 
 import (
 	"context"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
 )
 
 //go:generate mockgen -destination=mock/stream_publisher_mock.go -package=publisher github.com/mozhdekzm/gqlgql/internal/interface/publisher StreamPublisher

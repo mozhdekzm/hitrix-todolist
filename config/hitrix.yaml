@@ -1,0 +1,43 @@
+slack:
+  error_channel: ""
+  dev_panel_url: ""
+  bot_tokens:
+    errors: "your token"
+
+stripe:
+  key: "api_key"
+  webhook_secrets:
+    checkout: "key"
+
+checkout:
+  secret_key: "secret_key"
+  public_key: "public_key"
+  currency: "GBP"
+  webhook_keys:
+    main: "some_key"
+
+oss:
+  amazon:
+    endpoint: "https://somestorage.com"
+    access_key_id: ""
+    secret_access_key: ""
+    disable_ssl: false
+    region: us-east-1
+  buckets:
+    public:
+      name: bucket-name
+      cdn_url: "https://example.com/{Bucket}/{StorageKey}"
+      ACL: public-read
+    private:
+      name: bucket-name-private
+      cdn_url: "http://127.0.0.1/{Bucket}/{StorageKey}"
+
+server:
+  timeout_sec: 10
+
+orm_debug: false
+
+google_calendar:
+  credential_file: "./credentials.json"
+  scopes:
+    - "https://www.googleapis.com/auth/calendar"

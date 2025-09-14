@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/mozhdekzm/gqlgql/internal/interface/publisher"
-	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/publisher"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/repository"
 )
 
 type OutboxWorker struct {

@@ -1,0 +1,20 @@
+orm:
+  default:
+    mysql: root:password@tcp(mysql:3306)/todos
+    redis: redis:6379:1
+    locker: default
+    local_cache: 1000
+  search_pool:
+    redis: redis:6379:2
+
+authentication:
+  secret: "a-deep-dark-secret"
+  support_otp: true
+  otp_length: 5
+
+cors:
+  - http://localhost:9001
+  - http://localhost:63342
+
+server:
+  port: 8080

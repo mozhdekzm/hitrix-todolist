@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"github.com/mozhdekzm/gqlgql/internal/config"
+	"github.com/mozhdekzm/hitrix-todolist/config"
 	"github.com/redis/go-redis/v9"
 	"log"
 )

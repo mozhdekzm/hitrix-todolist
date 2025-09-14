@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/mozhdekzm/gqlgql/internal/usecase"
+	"github.com/mozhdekzm/hitrix-todolist/internal/usecase"
 )
 
 // This file will not be regenerated automatically.

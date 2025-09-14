@@ -3,13 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"git.ice.global/packages/hitrix/service"
+	"git.ice.global/packages/beeorm/v4"
 	"time"
 
-	"git.ice.global/packages/beeorm/v4"
-	"github.com/mozhdekzm/gqlgql/internal/domain"
-	"github.com/mozhdekzm/gqlgql/internal/interface/publisher"
-	"github.com/mozhdekzm/gqlgql/internal/interface/repository"
+	"github.com/mozhdekzm/hitrix-todolist/internal/domain"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/publisher"
+	"github.com/mozhdekzm/hitrix-todolist/internal/interface/repository"
 )
 
 type TodoService struct {
@@ -19,12 +18,12 @@ type TodoService struct {
 	engine         *beeorm.Engine
 }
 
-func NewTodoService(todoRepo repository.TodoRepository, outboxRepo repository.OutboxRepository, redisPublisher publisher.StreamPublisher) *TodoService {
+func NewTodoService(todoRepo repository.TodoRepository, outboxRepo repository.OutboxRepository, redisPublisher publisher.StreamPublisher, engine *beeorm.Engine) *TodoService {
 	return &TodoService{
 		todoRepo:       todoRepo,
 		outboxRepo:     outboxRepo,
 		redisPublisher: redisPublisher,
-		engine:         service.DI().OrmEngine(),
+		engine:         engine,
 	}
 }
 

@@ -8,8 +8,8 @@ import (
 )
 
 type OutboxEvent struct {
-	beeorm.ORM `orm:"table=outbox_events,redisCache"`
-	ID         uint64    `orm:"localCache;"`
+	beeorm.ORM `orm:"table=outbox_events;redisCache"`
+	ID         uint64    `orm:"required"`
 	EventType  string    `orm:"required"`
 	EntityID   uint64    `orm:"required"`
 	EntityType string    `orm:"required"`
