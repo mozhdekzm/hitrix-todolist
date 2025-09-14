@@ -69,6 +69,7 @@ func main() {
 
 	// Setup repositories and services
 	ormengine := service.DI().OrmEngine()
+
 	todoRepo := mysql.NewTodoRepository(ormengine)
 	outboxRepo := mysql.NewOutboxRepository(ormengine)
 	streamPublisher := redis.NewStreamPublisher(*redisClient, cfg)
